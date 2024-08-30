@@ -1,0 +1,53 @@
+# Author: Mikael Araújo
+# Google Colab Version 
+
+!pip install selenium
+!apt-get update
+!apt install chromium-chromedriver
+!cp /usr/lib/chromium-browser/chromedriver /usr/bin
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def get_first_related_term(search_term):
+    # Configuração do WebDriver para o Colab (Chrome headless)
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+
+    driver = webdriver.Chrome(options=chrome_options)
+
+    # GOOGLE IMAGES URL IN PORTUGUESE BR
+    driver.get("https://www.google.com/imghp?hl=pt-BR")
+
+    # Localizar a barra de pesquisa e inserir o termo de busca
+    search_box = driver.find_element(By.NAME, "q")
+    search_box.send_keys(search_term)
+    search_box.submit()
+
+    # Aguardar o carregamento do primeiro termo relacionado (ajuste o tempo se necessário)
+    try:
+        first_related_term_element = WebDriverWait(driver, 20).until(
+            #EC.presence_of_element_located((By.XPATH, '//*[@id="hdtb-sc"]/div/div[2]/div[1]/div[1]/a/div/span[2]'))
+            EC.presence_of_element_located((By.XPATH, '//*[@id="hdtb-sc"]/div/div[2]/div[1]'))
+        )
+
+        # Extrair o texto do primeiro termo relacionado
+        first_related_term = first_related_term_element.text
+
+        return first_related_term
+    except:
+        print("Not found.")
+        return None
+    finally:
+        driver.quit()
+
+# Sample
+search_term = "neymar"
+first_related_term = get_first_related_term(search_term)
+
+if first_related_term:
+    print(f"The list of terms for '{search_term} are': {first_related_term}")
